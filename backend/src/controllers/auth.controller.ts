@@ -44,3 +44,44 @@ export const registerUser: RequestHandler = async (
     next(error);
   }
 };
+
+export const loginUser: RequestHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    res.status(400).json({ message: "이메일과 비밀번호를 입력해주세요." });
+    return;
+  }
+
+  try {
+    const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [
+      email,
+    ]);
+    const user = (rows as any[])[0];
+
+    if (!user) {
+      res.status(404).json({ message: "존재하지 않는 이메일입니다." });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      res.status(401).json({ message: "비밀번호가 일치하지 않습니다." });
+      return;
+    }
+
+    res.status(200).json({
+      message: "로그인 성공",
+      userId: user.id,
+    });
+  } catch (error) {
+    console.error("로그인 오류", error);
+    res
+      .status(500)
+      .json({ message: "서버 오류가 발생했습니다. 나중에 다시 시도해주세요." });
+    next(error);
+  }
+};
