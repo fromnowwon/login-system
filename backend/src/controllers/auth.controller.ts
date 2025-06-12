@@ -2,7 +2,7 @@
 import { NextFunction, Request, Response, RequestHandler } from "express";
 import bcrypt from "bcrypt";
 import pool from "../db";
-import { generateToken } from "../util/jwt";
+import { generateToken } from "../utils/jwt";
 
 export const registerUser: RequestHandler = async (
   req: Request,
