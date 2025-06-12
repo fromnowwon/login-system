@@ -2,11 +2,11 @@
 import { NextFunction, Request, Response, RequestHandler } from "express";
 import bcrypt from "bcrypt";
 import pool from "../db";
+import { generateToken } from "../util/jwt";
 
 export const registerUser: RequestHandler = async (
   req: Request,
-  res: Response,
-  next: NextFunction
+  res: Response
 ): Promise<void> => {
   const { name, email, password } = req.body;
 
@@ -40,15 +40,12 @@ export const registerUser: RequestHandler = async (
     res
       .status(500)
       .json({ message: "서버 오류가 발생했습니다. 나중에 다시 시도해주세요." });
-
-    next(error);
   }
 };
 
 export const loginUser: RequestHandler = async (
   req: Request,
-  res: Response,
-  next: NextFunction
+  res: Response
 ) => {
   const { email, password } = req.body;
 
@@ -65,23 +62,27 @@ export const loginUser: RequestHandler = async (
 
     if (!user) {
       res.status(404).json({ message: "존재하지 않는 이메일입니다." });
+      return;
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
+
     if (!isMatch) {
       res.status(401).json({ message: "비밀번호가 일치하지 않습니다." });
       return;
     }
 
+    // 토큰 생성 (user id와 이메일만 포함!)
+    const token = generateToken({ id: user.id, email: user.email });
+
     res.status(200).json({
       message: "로그인 성공",
-      userId: user.id,
+      token,
     });
   } catch (error) {
     console.error("로그인 오류", error);
     res
       .status(500)
       .json({ message: "서버 오류가 발생했습니다. 나중에 다시 시도해주세요." });
-    next(error);
   }
 };
