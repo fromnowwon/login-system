@@ -58,6 +58,7 @@ export const loginUser: RequestHandler = async (
     const [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [
       email,
     ]);
+
     const user = (rows as any[])[0];
 
     if (!user) {
@@ -72,12 +73,21 @@ export const loginUser: RequestHandler = async (
       return;
     }
 
-    // 토큰 생성 (user id와 이메일만 포함!)
-    const token = generateToken({ id: user.id, email: user.email });
+    // 토큰 생성
+    const token = generateToken({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    });
 
     res.status(200).json({
       message: "로그인 성공",
       token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
     });
   } catch (error) {
     console.error("로그인 오류", error);

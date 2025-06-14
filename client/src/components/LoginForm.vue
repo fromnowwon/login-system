@@ -38,12 +38,46 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from "vue-router";
 import { ref } from "vue";
+import { useAuthStore } from "@/stores/auth";
+
+const router = useRouter();
+
+const authStore = useAuthStore();
 
 const email = ref("");
 const password = ref("");
 
-function onSubmit() {
-  console.log("로그인 시도", email.value, password.value);
+async function onSubmit() {
+  try {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        email: email.value,
+        password: password.value,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("로그인 실패");
+    }
+
+    const data = await response.json();
+
+    // 로그인 성공 시 토큰을 로컬 스토리지에 저장
+    localStorage.setItem("token", data.token);
+
+    // authStore에 토큰과 사용자 정보를 저장
+    authStore.token = data.token;
+    authStore.user = data.user ?? null;
+
+    router.push("/");
+  } catch (error) {
+    alert("로그인에 실패했습니다. 다시 시도해주세요.");
+  }
 }
 </script>
