@@ -1,4 +1,10 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
+
+interface UserPayload extends JwtPayload {
+  id: number;
+  email: string;
+  name: string;
+}
 
 const JWT_SECRET =
   process.env.NODE_ENV === "production"
@@ -11,9 +17,9 @@ export function generateToken(payload: object) {
   });
 }
 
-export function verifyToken(token: string) {
+export function verifyToken(token: string): UserPayload | null {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, JWT_SECRET) as UserPayload;
   } catch (error) {
     return null;
   }
