@@ -6,8 +6,9 @@
       to="/"
       class="text-gray-700 hover:text-blue-600"
       @click="closeMenu"
-      ><h1 class="text-xl font-bold">MyApp</h1></router-link
     >
+      <h1 class="text-xl font-bold">MyApp</h1>
+    </router-link>
 
     <button @click="toggleMenu" class="focus:outline-none">
       <svg
@@ -43,6 +44,22 @@
           @click="closeMenu"
           >마이페이지</router-link
         >
+
+        <!-- ✅ 로그인 상태에 따라 로그인 또는 로그아웃 버튼 표시 -->
+        <button
+          v-if="!authStore.token"
+          @click="goLogin"
+          class="text-left text-gray-700 hover:text-blue-600 cursor-pointer"
+        >
+          로그인
+        </button>
+        <button
+          v-else
+          @click="logout"
+          class="text-left text-gray-700 hover:text-blue-600 cursor-pointer"
+        >
+          로그아웃
+        </button>
       </nav>
     </div>
   </header>
@@ -50,12 +67,29 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
+
+const router = useRouter();
+const authStore = useAuthStore();
 
 const isOpen = ref(false);
+
 const toggleMenu = () => {
   isOpen.value = !isOpen.value;
 };
 const closeMenu = () => {
   isOpen.value = false;
+};
+
+const goLogin = () => {
+  closeMenu();
+  router.push("/login");
+};
+
+const logout = () => {
+  authStore.logout();
+  closeMenu();
+  router.push("/login");
 };
 </script>
