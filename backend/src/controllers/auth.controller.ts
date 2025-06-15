@@ -1,5 +1,6 @@
 // 클라이언트에서 요청한 로직을 처리하는 역할
-import { NextFunction, Request, Response, RequestHandler } from "express";
+import { Request, Response, RequestHandler } from "express";
+import { RowDataPacket } from "mysql2";
 import bcrypt from "bcrypt";
 import pool from "../db";
 import { generateToken } from "../utils/jwt";
@@ -21,7 +22,9 @@ export const registerUser: RequestHandler = async (
       [email]
     );
 
-    if ((existing as any[]).length > 0) {
+    // TypeScript에서 pool.query의 결과 타입은 기본적으로 any로 반환
+    // RowDataPacket[]로 타입 단언을 통해 명시적으로 지정하여 DB에서 가져온 데이터 행(Row) 명시
+    if ((existing as RowDataPacket[]).length > 0) {
       res.status(409).json({ message: "이미 가입된 이메일입니다." });
       return;
     }
@@ -59,7 +62,7 @@ export const loginUser: RequestHandler = async (
       email,
     ]);
 
-    const user = (rows as any[])[0];
+    const user = (rows as RowDataPacket[])[0];
 
     if (!user) {
       res.status(404).json({ message: "존재하지 않는 이메일입니다." });
