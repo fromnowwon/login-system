@@ -16,6 +16,11 @@ export default defineConfig({
       "/api": {
         target: "http://localhost:4000",
         changeOrigin: true,
+        configure: (proxy) => {
+          proxy.on("proxyReq", (proxyReq, req) => {
+            console.log("[Proxy] 요청:", req.method, req.url);
+          });
+        },
       },
     },
   },
