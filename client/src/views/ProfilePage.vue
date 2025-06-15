@@ -27,7 +27,33 @@
         정보 수정
       </router-link>
 
-      <button class="mt-3 p-2" @click="logout">로그아웃</button>
+      <button class="inline-block mt-4 p-2" @click="confirmDelete">
+        회원 탈퇴
+      </button>
+    </div>
+
+    <!-- 탈퇴 확인 모달 -->
+    <div
+      v-if="showModal"
+      class="fixed inset-0 bg-black/50 flex items-center justify-center z-60"
+    >
+      <div class="bg-white p-6 rounded shadow max-w-sm w-full">
+        <p class="mb-4">
+          정말로 회원 탈퇴 하시겠습니까? <br />이 작업은 되돌릴 수 없습니다.
+        </p>
+        <button
+          @click="deleteAccount"
+          class="bg-red-600 text-white px-4 py-2 rounded mr-2 cursor-pointer"
+        >
+          탈퇴하기
+        </button>
+        <button
+          @click="showModal = false"
+          class="px-4 py-2 border rounded cursor-pointer"
+        >
+          취소
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -39,6 +65,36 @@ import { useRouter } from "vue-router";
 
 const authStore = useAuthStore();
 const router = useRouter();
+
+const showModal = ref(false);
+
+const confirmDelete = () => {
+  showModal.value = true;
+};
+
+const deleteAccount = async () => {
+  try {
+    const res = await fetch("/api/user", {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${authStore.token}`,
+      },
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "회원 탈퇴 실패");
+    }
+
+    alert("회원 탈퇴가 완료되었습니다.");
+    authStore.logout();
+    router.push("/login");
+  } catch (error) {
+    alert(error instanceof Error ? error.message : "오류가 발생했습니다.");
+  } finally {
+    showModal.value = false;
+  }
+};
 
 const user = ref<{ name: string; email: string; created_at?: string } | null>(
   null

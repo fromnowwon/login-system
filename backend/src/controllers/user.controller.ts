@@ -49,3 +49,25 @@ export const updateUserProfile: RequestHandler = async (req, res) => {
     res.status(500).json({ message: "서버 오류" });
   }
 };
+
+// 사용자 삭제
+export const deleteUser: RequestHandler = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+
+    const [result] = await pool.query<ResultSetHeader>(
+      "DELETE FROM users WHERE id = ?",
+      [userId]
+    );
+
+    if (result.affectedRows === 0) {
+      res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
+      return;
+    }
+
+    res.json({ message: "회원 탈퇴가 완료되었습니다." });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "서버 오류가 발생했습니다." });
+  }
+};
