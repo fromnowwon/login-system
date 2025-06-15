@@ -2,13 +2,23 @@ import { createRouter, createWebHistory } from "vue-router";
 import HomePage from "@/views/HomePage.vue";
 import LoginPage from "@/views/LoginPage.vue";
 import ProfilePage from "@/views/ProfilePage.vue";
+import EditProfilePage from "@/views/EditProfilePage.vue";
 import RegisterPage from "@/views/RegisterPage.vue";
 
 const routes = [
   { path: "/", component: HomePage },
   { path: "/login", component: LoginPage },
-  { path: "/profile", component: ProfilePage },
   { path: "/register", component: RegisterPage },
+  {
+    path: "/profile",
+    component: ProfilePage,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/edit-profile",
+    component: EditProfilePage,
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({

@@ -2,27 +2,33 @@
   <div class="w-full bg-white rounded shadow p-6 mt-8">
     <h2 class="text-2xl font-bold mb-6 text-center">내 프로필</h2>
 
-    <div v-if="user" class="mb-4">
-      <label class="block font-semibold mb-1">이름</label>
-      <p class="text-lg">{{ user.name }}</p>
+    <div class="flex flex-col gap-4">
+      <div v-if="user">
+        <label class="block font-semibold mb-1">이름</label>
+        <p class="text-lg">{{ user.name }}</p>
+      </div>
+
+      <div v-if="user">
+        <label class="block font-semibold mb-1">이메일</label>
+        <p class="text-lg">{{ user.email }}</p>
+      </div>
+
+      <div v-if="user?.created_at">
+        <label class="block font-semibold mb-1">가입일</label>
+        <p class="text-lg">{{ formatDate(user.created_at) }}</p>
+      </div>
     </div>
 
-    <div v-if="user" class="mb-4">
-      <label class="block font-semibold mb-1">이메일</label>
-      <p class="text-lg">{{ user.email }}</p>
-    </div>
+    <div class="mt-10 text-center">
+      <router-link
+        to="/edit-profile"
+        class="block w-full text-center bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+      >
+        정보 수정
+      </router-link>
 
-    <div v-if="user?.created_at" class="mb-4">
-      <label class="block font-semibold mb-1">가입일</label>
-      <p class="text-lg">{{ formatDate(user.created_at) }}</p>
+      <button class="mt-3 p-2" @click="logout">로그아웃</button>
     </div>
-
-    <button
-      class="mt-6 w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition"
-      @click="logout"
-    >
-      로그아웃
-    </button>
   </div>
 </template>
 
@@ -50,8 +56,6 @@ onMounted(async () => {
     if (!res.ok) throw new Error("프로필 로드 실패");
 
     const data = await res.json();
-
-    console.log("User data:", data);
 
     user.value = {
       name: data.name,
