@@ -1,6 +1,6 @@
 <template>
   <div
-    class="w-full max-w-[600px] min-h-screen bg-white flex flex-col items-center justify-center p-6 mx-auto"
+    class="w-full min-h-screen flex items-center justify-center bg-gray-50 flex-col p-6 mx-auto"
   >
     <form
       @submit.prevent="onSubmit"
