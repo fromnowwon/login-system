@@ -20,21 +20,15 @@ router.beforeEach(async (to, from, next) => {
     await authStore.verifyCertificate();
   }
 
-  if (to.meta.requiresAuth) {
-    // 인증 필요한 페이지인데 토큰 없으면 로그인으로
-    if (!authStore.token) {
-      return next("/login");
+  if ((to.path === "/login" || to.path === "/register") && authStore.token) {
+    // 토큰이 있고 user가 있을 때만 홈으로 리다이렉트
+    if (authStore.user) {
+      alert("이미 로그인되어 있습니다.");
+      return next("/");
     }
   }
 
-  // 로그인/회원가입 페이지 접근 시 이미 로그인되어 있으면 홈으로
-  if ((to.path === "/login" || to.path === "/register") && authStore.token) {
-    alert("이미 로그인되어 있습니다.");
-    return next("/");
-  }
-
-  // 토큰 없으면 로그인 페이지로
-  if (!authStore.token) {
+  if (!authStore.token && to.path !== "/login" && to.path !== "/register") {
     return next("/login");
   }
 
