@@ -38,14 +38,13 @@
           @click="closeMenu"
           >홈</router-link
         >
-        <router-link
-          to="/profile"
-          class="text-gray-700 hover:text-blue-600"
-          @click="closeMenu"
-          >마이페이지</router-link
+        <button
+          @click="goProfile"
+          class="text-left text-gray-700 hover:text-blue-600 cursor-pointer"
         >
+          마이페이지
+        </button>
 
-        <!-- ✅ 로그인 상태에 따라 로그인 또는 로그아웃 버튼 표시 -->
         <button
           v-if="!authStore.token"
           @click="goLogin"
@@ -91,5 +90,15 @@ const logout = () => {
   authStore.logout();
   closeMenu();
   router.push("/login");
+};
+
+const goProfile = () => {
+  closeMenu();
+  if (!authStore.token) {
+    alert("로그인이 필요합니다.");
+    router.push("/login");
+  } else {
+    router.push("/profile");
+  }
 };
 </script>
