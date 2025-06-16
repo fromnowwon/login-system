@@ -144,8 +144,15 @@ const updateProfile = async () => {
       email: email.value,
     };
 
-    alert("프로필이 성공적으로 수정되었습니다.");
-    router.push("/profile");
+    if (newPassword.value) {
+      // 비밀번호가 바뀐 경우, 즉시 로그아웃 후 재로그인 유도
+      alert("비밀번호가 변경되었습니다. 다시 로그인해주세요.");
+      authStore.logout();
+      router.push("/login");
+    } else {
+      alert("프로필이 성공적으로 수정되었습니다.");
+      router.push("/profile");
+    }
   } catch (error) {
     console.error(error);
     alert(

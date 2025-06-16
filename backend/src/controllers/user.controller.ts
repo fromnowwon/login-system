@@ -97,12 +97,11 @@ export const updateUserProfile: RequestHandler = async (req, res) => {
       return;
     }
 
-    // 비밀번호가 넘어온 경우, 해싱 후 같이 업데이트
     let query = "UPDATE users SET name = ?, email = ?";
     const params: any[] = [name, email];
 
+    // password 있으면 해싱하고 쿼리에 추가
     if (password) {
-      // bcrypt로 비밀번호 해싱
       const hashedPassword = await bcrypt.hash(password, 10);
       query += ", password = ?";
       params.push(hashedPassword);
