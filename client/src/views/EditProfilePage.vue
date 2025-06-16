@@ -138,21 +138,24 @@ const updateProfile = async () => {
       throw new Error(err.message || "프로필 수정 실패");
     }
 
+    const data = await res.json();
+
     authStore.user = {
       ...authStore.user!,
       name: name.value,
       email: email.value,
     };
 
-    if (newPassword.value) {
-      // 비밀번호가 바뀐 경우, 즉시 로그아웃 후 재로그인 유도
-      alert("비밀번호가 변경되었습니다. 다시 로그인해주세요.");
-      authStore.logout();
-      router.push("/login");
+    // 새 토큰이 있으면 교체 (비밀번호 변경 시 새 JWT 발급됨)
+    if (data.token) {
+      authStore.token = data.token;
+      localStorage.setItem("token", data.token);
+      alert("프로필이 수정되었고 새 토큰이 발급되었습니다!");
     } else {
       alert("프로필이 성공적으로 수정되었습니다.");
-      router.push("/profile");
     }
+
+    router.push("/profile");
   } catch (error) {
     console.error(error);
     alert(

@@ -1,6 +1,7 @@
 import { RequestHandler, Request, Response } from "express";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { v4 as uuidv4 } from "uuid";
 import multer from "multer";
 import s3 from "../utils/s3";
@@ -97,12 +98,16 @@ export const updateUserProfile: RequestHandler = async (req, res) => {
       return;
     }
 
+    // 비밀번호 해싱
+    let hashedPassword = null;
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+
     let query = "UPDATE users SET name = ?, email = ?";
     const params: any[] = [name, email];
 
-    // password 있으면 해싱하고 쿼리에 추가
-    if (password) {
-      const hashedPassword = await bcrypt.hash(password, 10);
+    if (hashedPassword) {
       query += ", password = ?";
       params.push(hashedPassword);
     }
@@ -118,7 +123,17 @@ export const updateUserProfile: RequestHandler = async (req, res) => {
       return;
     }
 
-    res.json({ message: "프로필이 성공적으로 수정되었습니다." });
+    // 새 토큰 발급
+    const token = jwt.sign(
+      { id: userId, name, email },
+      process.env.JWT_SECRET!,
+      { expiresIn: "1h" }
+    );
+
+    res.json({
+      message: "프로필이 성공적으로 수정되었습니다.",
+      token, // 새 토큰 반환!
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "서버 오류" });
