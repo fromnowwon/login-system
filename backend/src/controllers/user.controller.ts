@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
+import bcrypt from "bcrypt";
 import pool from "../db";
 
 // 사용자 프로필 조회
@@ -25,7 +26,7 @@ export const getUserProfile: RequestHandler = async (req, res) => {
 export const updateUserProfile: RequestHandler = async (req, res) => {
   try {
     const userId = req.user?.id;
-    const { name, email } = req.body;
+    const { name, email, password } = req.body;
 
     // 기본 유효성 검사
     if (!name || !email) {
@@ -33,11 +34,23 @@ export const updateUserProfile: RequestHandler = async (req, res) => {
       return;
     }
 
+    // 비밀번호가 넘어온 경우, 해싱 후 같이 업데이트
+    let query = "UPDATE users SET name = ?, email = ?";
+    const params: any[] = [name, email];
+
+    if (password) {
+      // bcrypt로 비밀번호 해싱
+      const hashedPassword = await bcrypt.hash(password, 10);
+      query += ", password = ?";
+      params.push(hashedPassword);
+    }
+
+    query += " WHERE id = ?";
+    params.push(userId);
+
     // DB에 업데이트
-    const [result] = await pool.query<ResultSetHeader>(
-      "UPDATE users SET name = ?, email = ? WHERE id = ?",
-      [name, email, userId]
-    );
+    const [result] = await pool.query<ResultSetHeader>(query, params);
+
     if (result.affectedRows === 0) {
       res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
       return;

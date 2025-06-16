@@ -15,6 +15,48 @@
       </div>
 
       <div>
+        <label class="block font-semibold mb-1">비밀번호</label>
+        <div class="flex items-center gap-2">
+          <input
+            type="password"
+            value="********"
+            class="w-full border border-gray-300 rounded px-3 py-2 bg-gray-100 cursor-not-allowed"
+            disabled
+          />
+          <button
+            type="button"
+            class="text-sm text-blue-600 underline whitespace-nowrap"
+            @click="showPasswordFields = !showPasswordFields"
+          >
+            {{ showPasswordFields ? "취소" : "비밀번호 변경" }}
+          </button>
+        </div>
+      </div>
+
+      <!-- 비밀번호 변경 필드 -->
+      <div v-if="showPasswordFields" class="flex flex-col gap-4">
+        <div>
+          <label class="block font-semibold mb-1">새 비밀번호</label>
+          <input
+            v-model="newPassword"
+            type="password"
+            class="w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="새 비밀번호를 입력하세요"
+          />
+        </div>
+
+        <div>
+          <label class="block font-semibold mb-1">새 비밀번호 확인</label>
+          <input
+            v-model="confirmPassword"
+            type="password"
+            class="w-full border border-gray-300 rounded px-3 py-2"
+            placeholder="새 비밀번호를 다시 입력하세요"
+          />
+        </div>
+      </div>
+
+      <div>
         <label class="block font-semibold mb-1">이메일</label>
         <input
           v-model="email"
@@ -52,6 +94,10 @@ const router = useRouter();
 const name = ref("");
 const email = ref("");
 
+const showPasswordFields = ref(false); // 비밀번호 필드 노출 여부
+const newPassword = ref("");
+const confirmPassword = ref("");
+
 // 기존 프로필 정보 불러오기
 onMounted(() => {
   if (authStore.user) {
@@ -62,6 +108,17 @@ onMounted(() => {
 
 // 프로필 정보 수정 요청
 const updateProfile = async () => {
+  if (showPasswordFields.value) {
+    if (!newPassword.value || !confirmPassword.value) {
+      alert("새 비밀번호를 모두 입력하세요.");
+      return;
+    }
+    if (newPassword.value !== confirmPassword.value) {
+      alert("새 비밀번호가 일치하지 않습니다.");
+      return;
+    }
+  }
+
   try {
     const res = await fetch("/api/user/", {
       method: "PUT",
@@ -72,6 +129,7 @@ const updateProfile = async () => {
       body: JSON.stringify({
         name: name.value,
         email: email.value,
+        ...(newPassword.value ? { password: newPassword.value } : {}),
       }),
     });
 
@@ -80,7 +138,6 @@ const updateProfile = async () => {
       throw new Error(err.message || "프로필 수정 실패");
     }
 
-    // 서버 응답이 성공적이면 authStore의 user 정보 업데이트
     authStore.user = {
       ...authStore.user!,
       name: name.value,
