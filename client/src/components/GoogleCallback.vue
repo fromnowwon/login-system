@@ -10,7 +10,7 @@ const route = useRoute();
 const code = route.query.code;
 
 if (code) {
-  fetch("/api/auth/google/callback", {
+  fetch(`${import.meta.env.VITE_API_URL}/api/auth/google/callback`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
