@@ -182,6 +182,7 @@ export const googleOAuthCallback = async (
     );
 
     const redirectUrl = `${process.env.CLIENT_URL}/login-success?token=${token}`;
+    console.log("Redirecting to:", redirectUrl);
     res.redirect(redirectUrl);
   } catch (error) {
     console.error(error);
