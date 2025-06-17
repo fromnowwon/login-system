@@ -15,28 +15,29 @@ app.use(router);
 router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore();
 
-  if (to.path === "/auth/google/callback") {
-    return next();
-  }
-
-  // 토큰이 있으면 유저 정보 복원 시도
+  // 토큰이 있지만 유저 정보 없으면 복원 시도
   if (authStore.token && !authStore.user) {
     await authStore.verifyCertificate();
   }
 
-  if ((to.path === "/login" || to.path === "/register") && authStore.token) {
-    // 토큰이 있고 user가 있을 때만 홈으로 리다이렉트
-    if (authStore.user) {
-      alert("이미 로그인되어 있습니다.");
-      return next("/");
-    }
+  // 로그인/회원가입 페이지 진입 방지
+  if (
+    (to.path === "/login" || to.path === "/register") &&
+    authStore.token &&
+    authStore.user
+  ) {
+    alert("이미 로그인되어 있습니다.");
+    return next("/");
   }
 
-  if (!authStore.token && to.path !== "/login" && to.path !== "/register") {
+  // 로그인 안 했는데 보호된 페이지면 로그인으로
+  if (
+    !authStore.token &&
+    !["/login", "/register", "/login-success"].includes(to.path)
+  ) {
     return next("/login");
   }
 
   next();
 });
-
 app.mount("#app");
