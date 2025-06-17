@@ -3,7 +3,7 @@
     <div
       class="w-full max-w-[600px] min-h-screen bg-white flex flex-col relative"
     >
-      <Navbar />
+      <Navbar v-if="showNavbar" />
       <router-view class="flex-1" />
       <BottomTabs v-if="showBottomTabs" />
     </div>
@@ -18,7 +18,13 @@ import BottomTabs from "@/components/BottomTabs.vue";
 
 const route = useRoute();
 
+const hiddenPaths = ["/login", "/register", "/auth/google/callback"];
+
+const showNavbar = computed(() => {
+  return !hiddenPaths.includes(route.path);
+});
+
 const showBottomTabs = computed(() => {
-  return !["/login", "/register"].includes(route.path);
+  return !hiddenPaths.includes(route.path);
 });
 </script>
