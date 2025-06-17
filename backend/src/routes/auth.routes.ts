@@ -1,6 +1,10 @@
 // 요청이 들어오는 경로와 해당 요청을 처리할 컨트롤러를 정의
 import express from "express";
-import { loginUser, registerUser } from "../controllers/auth.controller";
+import {
+  googleOAuthCallback,
+  loginUser,
+  registerUser,
+} from "../controllers/auth.controller";
 import { authMiddleware } from "../middlewares/authMiddleware";
 
 const router = express.Router();
@@ -25,5 +29,8 @@ router.get("/certificate", authMiddleware, (req, res) => {
     name: user.name,
   });
 });
+
+// 구글 OAuth 콜백
+router.post("/google/callback", googleOAuthCallback);
 
 export default router;

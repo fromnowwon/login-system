@@ -4,6 +4,7 @@ import LoginPage from "@/views/LoginPage.vue";
 import ProfilePage from "@/views/ProfilePage.vue";
 import EditProfilePage from "@/views/EditProfilePage.vue";
 import RegisterPage from "@/views/RegisterPage.vue";
+import GoogleCallback from "@/components/GoogleCallback.vue";
 
 const routes = [
   { path: "/", component: HomePage },
@@ -18,6 +19,10 @@ const routes = [
     path: "/edit-profile",
     component: EditProfilePage,
     meta: { requiresAuth: true },
+  },
+  {
+    path: "/auth/google/callback",
+    component: GoogleCallback,
   },
 ];
 

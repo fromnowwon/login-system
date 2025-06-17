@@ -15,6 +15,10 @@ app.use(router);
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
 
+  if (to.path === "/auth/google/callback") {
+    return next();
+  }
+
   // 토큰이 있으면 유저 정보 복원 시도
   if (authStore.token && !authStore.user) {
     await authStore.verifyCertificate();

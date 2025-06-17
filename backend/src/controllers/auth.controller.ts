@@ -1,9 +1,13 @@
 // 클라이언트에서 요청한 로직을 처리하는 역할
-import { Request, Response, RequestHandler } from "express";
-import { RowDataPacket } from "mysql2";
+import { Request, Response, RequestHandler, NextFunction } from "express";
+import { OAuth2Client } from "google-auth-library";
+import { ResultSetHeader, RowDataPacket } from "mysql2";
+import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import pool from "../db";
 import { generateToken } from "../utils/jwt";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const registerUser: RequestHandler = async (
   req: Request,
@@ -97,5 +101,97 @@ export const loginUser: RequestHandler = async (
     res
       .status(500)
       .json({ message: "서버 오류가 발생했습니다. 나중에 다시 시도해주세요." });
+  }
+};
+
+// 구글 OAuth 콜백 처리
+export const googleOAuthCallback = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { code } = req.body;
+
+    if (!code) {
+      res.status(400).json({ message: "Google code가 필요합니다." });
+      return;
+    }
+
+    // code 로 access_token, id_token 교환
+    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code,
+        client_id: process.env.GOOGLE_CLIENT_ID!,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+        redirect_uri: process.env.GOOGLE_REDIRECT_URI!,
+        grant_type: "authorization_code",
+      }),
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    if (!tokenData.id_token) {
+      res.status(400).json({ message: "인증 처리 중 오류가 발생했습니다." });
+      return;
+    }
+
+    // id_token 검증
+    const ticket = await client.verifyIdToken({
+      idToken: tokenData.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID!,
+    });
+
+    const payload = ticket.getPayload();
+
+    if (!payload) {
+      res.status(400).json({ message: "유효하지 않은 ID 토큰 정보입니다." });
+      return;
+    }
+
+    const { sub: googleId, email, name, picture } = payload;
+
+    // 사용자 조회/생성
+    const [rows] = await pool.query(
+      "SELECT * FROM users WHERE google_id = ? OR email = ?",
+      [googleId, email]
+    );
+    let user = (rows as RowDataPacket[])[0];
+
+    if (!user) {
+      const [result] = await pool.query<ResultSetHeader>(
+        "INSERT INTO users (name, email, profile_image, google_id) VALUES (?, ?, ?, ?)",
+        [name, email, picture, googleId]
+      );
+      const insertedId = result.insertId;
+
+      const [newUserRows] = await pool.query<RowDataPacket[]>(
+        "SELECT * FROM users WHERE id = ?",
+        [insertedId]
+      );
+      user = newUserRows[0];
+    }
+
+    // JWT 발급 후 응답
+    const token = jwt.sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET!,
+      { expiresIn: "1h" }
+    );
+
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        profile_image: user.profile_image,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    next(error);
   }
 };

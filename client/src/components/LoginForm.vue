@@ -23,7 +23,7 @@
 
     <button
       type="submit"
-      class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition"
+      class="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition cursor-pointer"
     >
       로그인
     </button>
@@ -34,10 +34,15 @@
         >회원가입</router-link
       >
     </p>
+
+    <div class="mt-6">
+      <GoogleLoginButton />
+    </div>
   </form>
 </template>
 
 <script setup lang="ts">
+import GoogleLoginButton from "@/components/GoogleLoginButton.vue";
 import { useRouter } from "vue-router";
 import { ref } from "vue";
 import { useAuthStore } from "@/stores/auth";
