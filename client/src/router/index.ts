@@ -22,6 +22,7 @@ const routes = [
   },
   {
     path: "/login-success",
+    alias: ["/login-success/"],
     name: "GoogleLoginSuccess",
     component: GoogleLoginSuccessPage,
   },
