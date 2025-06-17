@@ -22,10 +22,7 @@ onMounted(() => {
 
     // 부모 창에 메시지 보내기
     if (window.opener) {
-      window.opener.postMessage(
-        { type: "google-login-success", token },
-        window.location.origin
-      );
+      window.opener.postMessage({ type: "google-login-success", token }, "*");
       window.close();
     } else {
       // 팝업이 아닌 경우 그냥 홈으로 이동
