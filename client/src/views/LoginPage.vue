@@ -12,9 +12,16 @@ import { useAuthStore } from "@/stores/auth";
 const authStore = useAuthStore();
 
 function handleMessage(event: MessageEvent) {
-  console.log("message received:", event.origin, event.data);
+  // 허용할 origin 리스트
+  const allowedOrigins = [
+    import.meta.env.VITE_CLIENT_URL, // 배포 URL
+    window.location.origin, // 현재 창 origin (로컬 개발 시)
+  ];
 
-  if (event.origin !== import.meta.env.VITE_CLIENT_URL) return;
+  if (!allowedOrigins.includes(event.origin)) {
+    console.warn(`Blocked message from disallowed origin: ${event.origin}`);
+    return;
+  }
 
   if (event.data.type === "google-login-success") {
     const token = event.data.token;
