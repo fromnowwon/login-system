@@ -18,6 +18,8 @@ onMounted(() => {
     localStorage.setItem("token", token);
     authStore.verifyCertificate();
 
+    console.log("Token verified, user authenticated");
+
     // 부모 창에 메시지 보내기
     if (window.opener) {
       window.opener.postMessage(
