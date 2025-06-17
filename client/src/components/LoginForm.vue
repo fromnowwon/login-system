@@ -56,16 +56,19 @@ const password = ref("");
 
 async function onSubmit() {
   try {
-    const response = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({
-        email: email.value,
-        password: password.value,
-      }),
-    });
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/auth/login`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.value,
+          password: password.value,
+        }),
+      }
+    );
 
     if (!response.ok) {
       throw new Error("로그인 실패");

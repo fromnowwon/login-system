@@ -26,7 +26,7 @@ const user = ref(authStore.user);
 onMounted(async () => {
   if (authStore.token) {
     try {
-      const res = await fetch("/api/user", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/user`, {
         headers: {
           Authorization: `Bearer ${authStore.token}`,
         },

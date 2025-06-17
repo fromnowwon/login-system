@@ -120,7 +120,7 @@ const updateProfile = async () => {
   }
 
   try {
-    const res = await fetch("/api/user/", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/user/`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

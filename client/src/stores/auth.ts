@@ -18,11 +18,14 @@ export const useAuthStore = defineStore("auth", {
       if (!this.token) return;
 
       try {
-        const res = await fetch("api/auth/certificate", {
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
-        });
+        const res = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/auth/certificate`,
+          {
+            headers: {
+              Authorization: `Bearer ${this.token}`,
+            },
+          }
+        );
 
         if (!res.ok) {
           this.logout();

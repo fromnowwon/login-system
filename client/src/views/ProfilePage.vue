@@ -123,7 +123,7 @@ const confirmDelete = () => {
 
 const deleteAccount = async () => {
   try {
-    const res = await fetch("/api/user", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/user`, {
       method: "DELETE",
       headers: {
         Authorization: `Bearer ${authStore.token}`,
@@ -153,13 +153,16 @@ const handleImageUpload = async (e: Event) => {
   formData.append("profile_image", file);
 
   try {
-    const res = await fetch("/api/user/profile-image", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${authStore.token}`,
-      },
-      body: formData,
-    });
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/user/profile-image`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${authStore.token}`,
+        },
+        body: formData,
+      }
+    );
 
     if (!res.ok) throw new Error("이미지 업로드 실패");
 
@@ -180,12 +183,15 @@ const deleteProfileImage = async () => {
   if (!confirm("정말로 프로필 이미지를 삭제하시겠습니까?")) return;
 
   try {
-    const res = await fetch("/api/user/profile-image", {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${authStore.token}`,
-      },
-    });
+    const res = await fetch(
+      `${import.meta.env.VITE_API_URL}/api/user/profile-image`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${authStore.token}`,
+        },
+      }
+    );
 
     if (!res.ok) throw new Error("이미지 삭제 실패");
 
@@ -202,7 +208,7 @@ const deleteProfileImage = async () => {
 
 onMounted(async () => {
   try {
-    const res = await fetch("/api/user/", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/user/`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${authStore.token}`,
