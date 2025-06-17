@@ -12,8 +12,6 @@ import { useAuthStore } from "@/stores/auth";
 const authStore = useAuthStore();
 
 function handleMessage(event: MessageEvent) {
-  console.log("Message origin:", event.origin);
-
   if (event.origin !== import.meta.env.VITE_CLIENT_URL) return;
 
   if (event.data.type === "google-login-success") {
@@ -22,7 +20,7 @@ function handleMessage(event: MessageEvent) {
     localStorage.setItem("token", token);
     authStore.verifyCertificate();
 
-    // 팝업 닫히고 나서 로그인 성공 후 처리
+    // 로그인 성공 후 리다이렉트
     window.location.href = "/";
   }
 }
