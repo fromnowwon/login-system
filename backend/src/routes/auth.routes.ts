@@ -31,6 +31,6 @@ router.get("/certificate", authMiddleware, (req, res) => {
 });
 
 // 구글 OAuth 콜백
-router.post("/google/callback", googleOAuthCallback);
+router.get("/google/callback", googleOAuthCallback);
 
 export default router;

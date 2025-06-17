@@ -111,14 +111,14 @@ export const googleOAuthCallback = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { code } = req.body;
+    const code = req.query.code as string | undefined;
 
     if (!code) {
-      res.status(400).json({ message: "Google code가 필요합니다." });
+      res.status(400).json({ message: "Google 인증 코드가 필요합니다." });
       return;
     }
 
-    // code 로 access_token, id_token 교환
+    // 구글에 code를 보내서 토큰 받기
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -138,7 +138,7 @@ export const googleOAuthCallback = async (
       return;
     }
 
-    // id_token 검증
+    // ID 토큰 검증
     const ticket = await client.verifyIdToken({
       idToken: tokenData.id_token,
       audience: process.env.GOOGLE_CLIENT_ID!,
@@ -174,22 +174,15 @@ export const googleOAuthCallback = async (
       user = newUserRows[0];
     }
 
-    // JWT 발급 후 응답
+    // JWT 생성
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET!,
       { expiresIn: "1h" }
     );
 
-    res.json({
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        profile_image: user.profile_image,
-      },
-    });
+    const redirectUrl = `${process.env.CLIENT_URL}/login-success?token=${token}`;
+    res.redirect(redirectUrl);
   } catch (error) {
     console.error(error);
     next(error);
