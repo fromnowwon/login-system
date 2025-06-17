@@ -18,15 +18,9 @@ onMounted(() => {
     localStorage.setItem("token", token);
     authStore.verifyCertificate();
 
-    console.log("Token verified, user authenticated");
-
     // 부모 창에 메시지 보내기
     if (window.opener) {
-      // 부모 창 origin을 정확히 지정
-      window.opener.postMessage(
-        { type: "google-login-success", token },
-        import.meta.env.VITE_CLIENT_URL
-      );
+      window.opener.postMessage({ type: "google-login-success", token }, "*");
       window.close();
     } else {
       // 팝업이 아닌 경우 그냥 홈으로 이동

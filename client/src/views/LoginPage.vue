@@ -12,6 +12,8 @@ import { useAuthStore } from "@/stores/auth";
 const authStore = useAuthStore();
 
 function handleMessage(event: MessageEvent) {
+  console.log("message received:", event.origin, event.data);
+
   if (event.origin !== import.meta.env.VITE_CLIENT_URL) return;
 
   if (event.data.type === "google-login-success") {
