@@ -12,7 +12,7 @@ app.use(pinia);
 app.use(router);
 
 // 라우터 가드 설정
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore();
 
   if (to.path === "/auth/google/callback") {

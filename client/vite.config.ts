@@ -17,7 +17,7 @@ export default defineConfig({
         target: "http://localhost:4000",
         changeOrigin: true,
         configure: (proxy) => {
-          proxy.on("proxyReq", (proxyReq, req) => {
+          proxy.on("proxyReq", (_proxyReq, req) => {
             console.log("[Proxy] 요청:", req.method, req.url);
           });
         },
