@@ -5,7 +5,12 @@ import cors from "cors";
 import authRoutes from "./routes/auth.routes";
 import userRoutes from "./routes/user.routes";
 
-dotenv.config();
+const envFile =
+  process.env.NODE_ENV === "production"
+    ? ".env.production"
+    : ".env.development";
+dotenv.config({ path: envFile });
+
 const app = express();
 
 app.use(cors());
