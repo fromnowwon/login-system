@@ -32,7 +32,7 @@
 - 이메일 수정
 - 유저가 자신의 이메일 변경 가능
 - 변경 시 중복 체크
-- 이름(닉네임) 수정
+- 이름 수정
 - 유저가 자신의 이름 수정 가능
 - 비밀번호 변경
 - 현재 비밀번호 확인 후 새로운 비밀번호로 변경
@@ -60,6 +60,7 @@
 - **Database**: MySQL
 - **OAuth**: Google OAuth2 API
 - **Deployment**: AWS EC2 (Backend), AWS Amplify (Frontend), AWS RDS (DB)
+- **Security & Proxy**: Let’s Encrypt SSL, AWS Certificate Manager, Nginx Reverse Proxy (SSL & 포트 관리)
 
 ## 프로젝트 구조
 
@@ -147,19 +148,129 @@ login-system/
 
 ### 5. 문제 해결 및 디버깅
 
-- 팝업 닫힘 문제, 새로고침 시 인증 복원 로직 (verifyCertificate)
-- 라우터 가드 리다이렉트 반복 이슈
-- OAuth 팝업의 origin 검사 버그 수정
-- EC2, RDS, Amplify 배포 시 CORS & 환경변수 차이 대응
+#### Google OAuth 팝업 → 부모창 메시지 전달 안 됨
 
-### 6. 배포
+- 문제: Google OAuth 팝업에서 로그인 후 postMessage로 부모창에 토큰 전달 → 부모창이 메시지를 못 받아서 인증이 안됨.
+- 원인: 팝업 → postMessage는 보내는데, 부모창에서 origin 검사 불일치
+- 해결: 팝업에서 window.opener.postMessage 사용, 부모창에서 origin을 VITE_CLIENT_URL로 정확히 맞춤
 
-- Backend: AWS EC2 + PM2로 Node 서버 무중단 배포
-- DB: AWS RDS (MySQL)
-- Frontend: AWS Amplify 호스팅으로 CI/CD 자동화
-- 서버 도메인 연결
+  ```javaScript
+  // 부모 창
+  function handleMessage(event: MessageEvent) {
+    // ✅ origin 검사!
+    // 메시지를 보낸 출처(origin)가 내가 의도한 것과 다르면 무시
+    if (event.origin !== import.meta.env.VITE_CLIENT_URL) return;
 
-### ✅ 최종 결과
+    if (event.data.type === "google-login-success") {
+      // origin 검사가 없으면 무조건 실행됨
+      // origin이 달라지면 메시지를 무시하거나, 보안 위험
+      const token = event.data.token;
+      authStore.token = token;
+      localStorage.setItem("token", token);
+      authStore.verifyCertificate();
+      window.location.href = "/";
+    }
+  }
+  ```
+
+#### 라우터 가드 리다이렉트 무한 반복
+
+- 문제: 라우터 가드에서 토큰 확인 + 인증 복원 + 리다이렉트 조건이 꼬여서 /login → / → /login 무한루프 발생. 인증 복원이 await 되기 전에 리다이렉트 조건이 실행됨
+- 해결: verifyCertificate를 반드시 await 해서 인증 복원이 완료된 후에 다음 조건 실행.
+
+  ```javaScript
+  router.beforeEach(async (to, from, next) => {
+    const authStore = useAuthStore();
+
+    // 수정 전: verifyCertificate()를 await 하지 않음
+    // if (authStore.token && !authStore.user) {
+    //  authStore.verifyCertificate();
+    // }
+
+    // ✅ 수정 후: 반드시 await!
+    if (authStore.token && !authStore.user) {
+      await authStore.verifyCertificate();
+    }
+
+    // ✅ 그리고 바로 다음 조건 실행
+    if (
+      (to.path === "/login" || to.path === "/register") &&
+      authStore.token &&
+      authStore.user
+    ) {
+      return next("/");
+    }
+
+    if (
+      !authStore.token &&
+      !["/login", "/register"].includes(to.path)
+    ) {
+      return next("/login");
+    }
+
+    next();
+  });
+  ```
+
+#### EC2, RDS, Amplify 배포 시 CORS & 환경변수 문제
+
+- 문제: 백엔드(EC2)와 DB(RDS), 프론트(Amplify)가 서로 다른 도메인으로 배포됨 → CORS 에러 발생
+
+  환경변수(VITE_API_URL, VITE_CLIENT_URL, GOOGLE_CLIENT_ID) 설정 불일치로 API 요청 실패
+
+- 해결
+
+  **백엔드**
+
+  - CORS 설정에서 origin에 Amplify 도메인과 로컬 모두 허용.
+  - .env로 CLIENT_URL 관리.
+
+  **프론트**
+
+  - VITE_API_URL을 Amplify 환경변수로 추가 - 로컬 .env에도 동일한 값 유지.
+  - 배포 후에도 postMessage의 origin이 정확해야 해서, 팝업과 부모창의 URL이 일치하도록 관리.
+
+    ```javaScript
+    function handleMessage(event: MessageEvent) {
+      // 수정 전: 단일 환경변수 검사
+      // if (event.origin !== import.meta.env.VITE_CLIENT_URL) return;
+
+      // ✅ 수정 후: 로컬 + 배포 모두 허용하도록 배열 검사
+      const allowedOrigins = [
+        import.meta.env.VITE_CLIENT_URL, // 배포 URL
+        window.location.origin, // 현재 창 origin (로컬 개발 시)
+      ];
+
+      if (!allowedOrigins.includes(event.origin)) return;
+
+      if (event.data.type === "google-login-success") {
+        const token = event.data.token;
+        authStore.token = token;
+        localStorage.setItem("token", token);
+        authStore.verifyCertificate();
+
+        window.location.href = "/";
+      }
+    }
+    ```
+
+### 6. 배포 & 운영
+
+- **EC2**: Node.js 백엔드 서버 배포
+- **Amplify**: 프론트엔드 CI/CD 배포
+- **RDS**: MySQL DB 관리
+- **도메인**: A 레코드로 EC2 연결, CNAME으로 Amplify 연결
+- **SSL 인증서**:
+  - Let’s Encrypt (무료)
+  - AWS Certificate Manager (유료도 가능)
+  - Nginx 리버스 프록시로 SSL 적용 & 포트 관리
+  - Certbot 자동 갱신 스크립트
+- **Nginx Reverse Proxy**
+  - 80 → 443 리디렉션
+  - Let’s Encrypt SSL 인증서 발급 및 자동 갱신 (`certbot renew`)
+  - 백엔드(EC2 Node.js)와 프론트(AWS Amplify) 각각 HTTPS로 접근
+
+## ✅ 최종 결과
 
 - 이메일/비밀번호 회원가입 & 로그인
 - Google OAuth2 로그인
@@ -167,3 +278,7 @@ login-system/
 - JWT 인증 미들웨어 + 라우터 가드
 - AWS 풀스택 배포 (EC2, RDS, Amplify)
 - 모바일 반응형 UI
+
+## 👤 Author
+
+- GitHub: [Chaewon](https://github.com/fromnowwon)
