@@ -70,17 +70,32 @@ export const deleteProfileImage: RequestHandler = async (req, res) => {
 // 사용자 프로필 조회
 export const getUserProfile: RequestHandler = async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const user = req.user;
+
+    if (!user) {
+      res.status(401).json({ message: "인증 정보가 없습니다." });
+      return;
+    }
+
+    // 추가 필드만 DB에서 가져옴
     const [rows] = await pool.query<RowDataPacket[]>(
-      "SELECT id, name, email, profile_image, created_at FROM users WHERE id = ?",
-      [userId]
+      "SELECT profile_image, created_at FROM users WHERE id = ?",
+      [user.id]
     );
+
     if ((rows as RowDataPacket[]).length === 0) {
       res.status(404).json({ message: "사용자를 찾을 수 없습니다." });
       return;
     }
 
-    res.json(rows[0]);
+    res.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      profile_image: rows[0].profile_image,
+      created_at: rows[0].created_at,
+    });
   } catch (error) {
     res.status(500).json({ message: "서버 오류" });
   }

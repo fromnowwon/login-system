@@ -7,6 +7,7 @@ interface UserRow extends RowDataPacket {
   id: number;
   name: string;
   email: string;
+  role: string;
 }
 
 export async function authMiddleware(
@@ -32,7 +33,7 @@ export async function authMiddleware(
   // DB에서 최신 정보 다시 가져오기
   try {
     const [rows] = await pool.query<UserRow[]>(
-      "SELECT id, name, email FROM users WHERE id = ?",
+      "SELECT id, name, email, role FROM users WHERE id = ?",
       [decoded.id]
     );
 
@@ -43,7 +44,6 @@ export async function authMiddleware(
       res.status(401).json({ message: "사용자를 찾을 수 없습니다." });
     }
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "서버 오류" });
+    next(error);
   }
 }

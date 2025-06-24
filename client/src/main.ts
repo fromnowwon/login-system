@@ -31,11 +31,14 @@ router.beforeEach(async (to, _from, next) => {
   }
 
   // 로그인 안 했는데 보호된 페이지면 로그인으로
-  if (
-    !authStore.token &&
-    !["/login", "/register", "/login-success"].includes(to.path)
-  ) {
+  if (to.meta.requiresAuth && !authStore.token) {
     return next("/login");
+  }
+
+  // 관리자 전용 페이지인데 role이 admin이 아니면 홈으로
+  if (to.meta.requiresAdmin && authStore.user?.role !== "admin") {
+    alert("관리자 권한이 필요합니다.");
+    return next("/");
   }
 
   next();
