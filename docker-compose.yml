@@ -1,0 +1,58 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: login-system-db-container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root1234
+      MYSQL_DATABASE: login-system-db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user1234
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./backend/src/db/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
+      - ./backend/src/db/seed.sql:/docker-entrypoint-initdb.d/2-seed.sql
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: login-system-backend-container
+    restart: always
+    ports:
+      - "8801:8801"
+    environment:
+      - DB_HOST=db
+      - DB_USER=user
+      - DB_PASSWORD=user1234
+      - DB_NAME=login-system-db
+      - DB_PORT=3306
+      - NODE_ENV=development
+      - PORT=8801
+      - CLIENT_URL=http://localhost:5173
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app # 로컬 backend 경로를 컨테이너 내부의 app 경로와 연결
+      - /app/node_modules # 컨테이너 내부의 의존성 설치와 실행은 컨테이너 안에서 함
+    command: npm run dev
+
+  client:
+    build:
+      context: ./client
+    container_name: login-system-client-container
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    command: npm run dev
+    depends_on:
+      - backend
+
+volumes:
+  db_data:

@@ -13,6 +13,10 @@ export default defineConfig({
     },
   },
   server: {
+    watch: {
+      usePolling: true,
+    },
+    host: true, // 외부 접속 가능
     proxy: {
       "/api": {
         target: "http://localhost:4000",
