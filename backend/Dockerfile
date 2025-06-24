@@ -8,16 +8,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # 4. 의존성 설치
-RUN npm install
+RUN npm install --include=dev
 
 # 5. 소스 코드 복사
 COPY . .
 
-# 6. 빌드 (타입스크립트)
-RUN npm run build
+# 6. 앱 실행
+CMD ["npm", "run", "dev"]
 
-# 7. 앱 실행
-CMD ["node", "dist/index.js"]
-
-# 8. 앱이 사용하는 포트 노출
+# 7. 앱이 사용하는 포트 노출
 EXPOSE 8801
