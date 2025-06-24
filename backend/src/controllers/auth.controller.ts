@@ -73,6 +73,14 @@ export const loginUser: RequestHandler = async (
       return;
     }
 
+    if (!user.password) {
+      res.status(400).json({
+        message:
+          "이 계정은 비밀번호 로그인으로 접근할 수 없습니다. 소셜 로그인을 이용해주세요.",
+      });
+      return;
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -154,24 +162,37 @@ export const googleOAuthCallback = async (
     const { sub: googleId, email, name, picture } = payload;
 
     // 사용자 조회/생성
-    const [rows] = await pool.query(
-      "SELECT * FROM users WHERE google_id = ? OR email = ?",
-      [googleId, email]
-    );
+    // 먼저 google_id로만 찾음
+    let [rows] = await pool.query("SELECT * FROM users WHERE google_id = ?", [
+      googleId,
+    ]);
     let user = (rows as RowDataPacket[])[0];
 
     if (!user) {
-      const [result] = await pool.query<ResultSetHeader>(
-        "INSERT INTO users (name, email, profile_image, google_id) VALUES (?, ?, ?, ?)",
-        [name, email, picture, googleId]
-      );
-      const insertedId = result.insertId;
+      // google_id 없으면 이메일로 찾음
+      [rows] = await pool.query("SELECT * FROM users WHERE email = ?", [email]);
+      user = (rows as RowDataPacket[])[0];
 
-      const [newUserRows] = await pool.query<RowDataPacket[]>(
-        "SELECT * FROM users WHERE id = ?",
-        [insertedId]
-      );
-      user = newUserRows[0];
+      if (user) {
+        // 이미 이메일로 가입된 유저라면 google_id를 연결해줌
+        await pool.query("UPDATE users SET google_id = ? WHERE id = ?", [
+          googleId,
+          user.id,
+        ]);
+      } else {
+        // 이메일로도 없으면 새로 만듦
+        const [result] = await pool.query<ResultSetHeader>(
+          "INSERT INTO users (name, email, profile_image, google_id) VALUES (?, ?, ?, ?)",
+          [name, email, picture, googleId]
+        );
+        const insertedId = result.insertId;
+
+        const [newUserRows] = await pool.query<RowDataPacket[]>(
+          "SELECT * FROM users WHERE id = ?",
+          [insertedId]
+        );
+        user = newUserRows[0];
+      }
     }
 
     // JWT 생성
@@ -182,7 +203,6 @@ export const googleOAuthCallback = async (
     );
 
     const redirectUrl = `${process.env.CLIENT_URL}/login-success?token=${token}`;
-    console.log("Redirecting to:", redirectUrl);
     res.redirect(redirectUrl);
   } catch (error) {
     console.error(error);
