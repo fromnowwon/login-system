@@ -2,58 +2,16 @@
   <div class="p-4 sm:p-8">
     <h1 class="text-xl sm:text-2xl font-bold mb-4">사용자 관리</h1>
 
-    <div class="mb-6 flex flex-col sm:flex-row gap-2">
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="이름 또는 이메일 검색"
-        class="border p-2 rounded w-full sm:w-1/2"
-      />
-    </div>
+    <UserSearchInput v-model="searchQuery" />
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-10">
-      <div
+      <UserCard
         v-for="user in filteredUsers"
         :key="user.id"
-        class="border rounded-lg p-4 shadow-sm"
-      >
-        <p class="text-sm"><strong>ID:</strong> {{ user.id }}</p>
-        <p class="text-sm"><strong>이메일:</strong> {{ user.email }}</p>
-
-        <div class="mt-2">
-          <label class="block text-sm text-gray-600 mb-1">이름</label>
-          <input
-            v-model="user.name"
-            class="text-sm border px-2 py-1 rounded w-full"
-          />
-        </div>
-
-        <div class="mt-2">
-          <label class="block text-sm text-gray-600 mb-1">권한</label>
-          <select
-            v-model="user.role"
-            class="text-sm border px-2 py-1 rounded w-full"
-          >
-            <option value="user">user</option>
-            <option value="admin">admin</option>
-          </select>
-        </div>
-
-        <div class="mt-4 flex gap-2 justify-between">
-          <button
-            class="text-sm text-white px-3 py-1 rounded bg-black whitespace-nowrap"
-            @click="updateUser(user)"
-          >
-            저장
-          </button>
-          <button
-            class="text-sm text-black px-3 py-1 rounded border border black whitespace-nowrap"
-            @click="deleteUser(user.id)"
-          >
-            삭제
-          </button>
-        </div>
-      </div>
+        :user="user"
+        @update="updateUser"
+        @delete="deleteUser"
+      />
     </div>
   </div>
 </template>
@@ -61,9 +19,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useAuthStore } from "@/stores/auth";
+import UserCard from "@/components/UserCard.vue";
+import UserSearchInput from "@/components/UserSearchInput.vue";
+import type { User } from "@/types/User";
 
 const authStore = useAuthStore();
-const users = ref<any[]>([]);
+const users = ref<User[]>([]);
 const searchQuery = ref("");
 
 const fetchUsers = async () => {
@@ -72,7 +33,6 @@ const fetchUsers = async () => {
       Authorization: `Bearer ${authStore.token}`,
     },
   });
-
   if (res.ok) {
     users.value = await res.json();
   } else {
@@ -97,11 +57,7 @@ const updateUser = async (user: any) => {
     }
   );
 
-  if (!res.ok) {
-    alert("수정 실패");
-    return;
-  }
-
+  if (!res.ok) return alert("수정 실패");
   alert("수정 완료");
 };
 
@@ -118,26 +74,21 @@ const deleteUser = async (id: number) => {
     }
   );
 
-  if (!res.ok) {
-    alert("삭제 실패");
-    return;
-  }
+  if (!res.ok) return alert("삭제 실패");
 
   users.value = users.value.filter((u) => u.id !== id);
   alert("삭제 완료");
 };
 
-const filteredUsers = computed(() => {
-  return users.value.filter((user) => {
+const filteredUsers = computed(() =>
+  users.value.filter((user) => {
     const keyword = searchQuery.value.toLowerCase();
     return (
       user.name.toLowerCase().includes(keyword) ||
       user.email.toLowerCase().includes(keyword)
     );
-  });
-});
+  })
+);
 
-onMounted(() => {
-  fetchUsers();
-});
+onMounted(fetchUsers);
 </script>
