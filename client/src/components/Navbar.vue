@@ -39,6 +39,12 @@
           >홈</router-link
         >
         <button
+          @click="goAdmin"
+          class="text-left text-gray-700 hover:text-blue-600 cursor-pointer"
+        >
+          관리자 페이지
+        </button>
+        <button
           @click="goProfile"
           class="text-left text-gray-700 hover:text-blue-600 cursor-pointer"
         >
@@ -90,6 +96,16 @@ const logout = () => {
   authStore.logout();
   closeMenu();
   router.push("/login");
+};
+
+const goAdmin = () => {
+  console.log("authStore.role", authStore.role);
+  closeMenu();
+  if (authStore.user.role !== "admin") {
+    alert("관리자 권한이 필요합니다.");
+  } else {
+    router.push("/admin");
+  }
 };
 
 const goProfile = () => {
