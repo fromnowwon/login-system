@@ -150,7 +150,10 @@ const updateProfile = async () => {
     if (data.token) {
       authStore.token = data.token;
       localStorage.setItem("token", data.token);
-      alert("프로필이 수정되었고 새 토큰이 발급되었습니다!");
+      alert("프로필이 수정되었습니다. 다시 로그인 해주세요.");
+      authStore.logout();
+      router.push("/login");
+      return;
     } else {
       alert("프로필이 성공적으로 수정되었습니다.");
     }
