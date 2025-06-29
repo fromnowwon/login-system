@@ -99,9 +99,8 @@ const logout = () => {
 };
 
 const goAdmin = () => {
-  console.log("authStore.role", authStore.role);
   closeMenu();
-  if (authStore.user.role !== "admin") {
+  if (authStore.user?.role !== "admin") {
     alert("관리자 권한이 필요합니다.");
   } else {
     router.push("/admin");
