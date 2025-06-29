@@ -75,7 +75,7 @@
 - **Storage**: AWS S3 Bucket (프로필 이미지 관리)
 - **OAuth**: Google OAuth2 API
 - **Deployment**: AWS EC2 (Backend), AWS Amplify (Frontend), AWS RDS (DB)
-- **Security & Proxy**: Let’s Encrypt SSL, AWS Certificate Manager, Nginx Reverse Proxy (SSL & 포트 관리)
+- **Security & Proxy**: EC2에서 certbot으로 Let’s Encrypt 인증서를 발급하고 자동 갱신을 설정, Nginx에 SSL을 적용하고 Reverse Proxy로 HTTP 요청을 HTTPS로 리다이렉트
 - **Containerization**: Docker, Docker Compose
 
 ## 프로젝트 구조
