@@ -21,7 +21,7 @@ import { ref, computed, onMounted } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import UserCard from "@/components/UserCard.vue";
 import UserSearchInput from "@/components/UserSearchInput.vue";
-import type { User } from "@/types/User";
+import type { User } from "@/types/user";
 
 const authStore = useAuthStore();
 const users = ref<User[]>([]);
