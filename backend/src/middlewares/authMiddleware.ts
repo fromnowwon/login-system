@@ -39,6 +39,7 @@ export async function authMiddleware(
 
     if (Array.isArray(rows) && rows.length > 0) {
       req.user = rows[0];
+      console.log("authMiddleware - req.user:", req.user);
       next();
     } else {
       res.status(401).json({ message: "사용자를 찾을 수 없습니다." });
