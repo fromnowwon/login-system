@@ -3,6 +3,7 @@ import express from "express";
 import {
   googleOAuthCallback,
   loginUser,
+  logoutUser,
   refreshTokenHandler,
   registerUser,
 } from "../controllers/auth.controller";
@@ -15,6 +16,9 @@ router.post("/register", registerUser);
 
 // 로그인
 router.post("/login", loginUser);
+
+// 로그아웃
+router.post("/logout", logoutUser);
 
 // Access Token 재발급 요청
 router.post("/refresh", refreshTokenHandler);

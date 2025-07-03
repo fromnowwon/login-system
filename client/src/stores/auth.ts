@@ -83,7 +83,16 @@ export const useAuthStore = defineStore("auth", {
         this.logout();
       }
     },
-    logout() {
+    async logout() {
+      try {
+        await fetch(`${import.meta.env.VITE_API_URL}/api/auth/logout`, {
+          method: "POST",
+          credentials: "include",
+        });
+      } catch (e) {
+        console.error("로그아웃 요청 실패", e);
+      }
+
       this.user = null;
       this.token = null;
       localStorage.removeItem("accessToken");

@@ -122,6 +122,19 @@ export const loginUser: RequestHandler = async (
   }
 };
 
+export const logoutUser: RequestHandler = async (
+  _req: Request,
+  res: Response
+) => {
+  res.clearCookie("refreshToken", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  });
+
+  res.status(200).json({ message: "로그아웃 되었습니다." });
+};
+
 // Access Token 재발급 요청
 export const refreshTokenHandler: RequestHandler = async (req, res) => {
   const refreshToken = req.cookies.refreshToken; // 쿠키에서 읽음
