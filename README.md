@@ -60,12 +60,41 @@
   - 모든 보호된 API는 JWT 필요
 - **라우터 가드**
   - 인증 상태 없으면 페이지 접근 차단
-- **토큰 갱신**
-  - 새로고침 시 로컬 토큰으로 인증 복원 (verifyCertificate)
 - **CORS & Same-Origin Policy 대응**
   - 안전한 도메인 정책 처리
 - **OAuth 팝업 보안**
   - 부모창 postMessage 처리 시 origin 검사로 위조 방지
+- **토큰 갱신**
+  - 새로고침 시 로컬 토큰으로 인증 복원 (verifyCertificate)
+  - Access Token이 만료되면 서버에 Refresh Token을 보내 자동 갱신
+
+### 🔄 Refresh Token 인증 흐름
+
+Access Token은 만료 시간이 짧기 때문에, Refresh Token을 이용해 자동으로 재발급하는 구조를 구현했습니다.
+
+#### ✔️ 구조 요약
+
+- **Access Token**: localStorage 저장, 만료 시간 짧음 (15분)
+- **Refresh Token**: httpOnly 쿠키에 저장 (7d), 서버 요청 시 자동 전송됨
+
+#### ✔️ 동작 흐름
+
+1. 로그인 성공 시:
+
+   - Access Token → 클라이언트로 전달 → localStorage에 저장
+   - Refresh Token → httpOnly 쿠키로 설정
+
+2. 사용자가 요청을 보낼 때:
+   - Access Token이 유효하면 그대로 진행
+   - Access Token이 만료되었으면, `/api/auth/refresh`로 자동 요청
+   - Refresh Token이 유효하면 새로운 Access Token을 발급
+   - 실패 시 로그아웃 처리
+
+#### ✔️ 보안 고려사항
+
+- Refresh Token은 쿠키로만 저장 (httpOnly, secure)
+- CORS 설정에서 credentials: true 필수
+- Access Token에는 최소한의 정보만 포함
 
 ## ⚙️ 기술 스택
 
@@ -262,7 +291,7 @@ login-system/
       // origin이 달라지면 메시지를 무시하거나, 보안 위험
       const token = event.data.token;
       authStore.token = token;
-      localStorage.setItem("token", token);
+      localStorage.setItem("accessToken", token);
       authStore.verifyCertificate();
       window.location.href = "/";
     }
