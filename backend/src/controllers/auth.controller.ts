@@ -105,7 +105,7 @@ export const loginUser: RequestHandler = async (
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // HTTPS 환경에서만 전달
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // cross-site 요청에서 쿠키 허용하려면 none
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7일
     });
 
