@@ -14,7 +14,8 @@ const authStore = useAuthStore();
 function handleMessage(event: MessageEvent) {
   // 허용할 origin 리스트
   const allowedOrigins = [
-    import.meta.env.VITE_CLIENT_URL, // 배포 URL
+    import.meta.env.VITE_CLIENT_URL, // 프론트 배포 URL
+    import.meta.env.VITE_API_URL, // 백엔드 URL
     window.location.origin, // 현재 창 origin (로컬 개발 시)
   ];
 
