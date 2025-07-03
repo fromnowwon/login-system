@@ -19,6 +19,9 @@ function handleMessage(event: MessageEvent) {
     window.location.origin, // 현재 창 origin (로컬 개발 시)
   ];
 
+  console.log("Received message from origin:", event.origin);
+  console.log("Allowed origins:", allowedOrigins);
+
   if (!allowedOrigins.includes(event.origin)) {
     console.warn(`Blocked message from disallowed origin: ${event.origin}`);
     return;
