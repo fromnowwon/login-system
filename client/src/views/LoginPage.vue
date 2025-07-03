@@ -27,6 +27,11 @@ function handleMessage(event: MessageEvent) {
     const token = event.data.token;
     authStore.token = token;
     localStorage.setItem("accessToken", token);
+
+    // 로그인 직전 기존 유저 정보 초기화
+    authStore.user = null;
+
+    // 사용자 정보 갱신
     authStore.verifyCertificate();
 
     // 로그인 성공 후 리다이렉트
