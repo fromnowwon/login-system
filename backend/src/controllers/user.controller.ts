@@ -69,8 +69,6 @@ export const deleteProfileImage: RequestHandler = async (req, res) => {
 
 // 사용자 프로필 조회
 export const getUserProfile: RequestHandler = async (req, res) => {
-  console.log("getUserProfile - req.user:", req.user);
-
   try {
     const user = req.user;
 
