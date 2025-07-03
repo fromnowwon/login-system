@@ -243,15 +243,36 @@ export const googleOAuthCallback = async (
       }
     }
 
-    // JWT 생성
-    const token = jwt.sign(
-      { id: user.id, email: user.email },
-      process.env.JWT_SECRET!,
-      { expiresIn: "1h" }
-    );
+    const accessToken = generateAccessToken({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+    });
 
-    const redirectUrl = `${process.env.CLIENT_URL}/login-success?token=${token}`;
-    res.redirect(redirectUrl);
+    const refreshToken = generateRefreshToken({
+      id: user.id,
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.send(`
+      <html>
+        <body>
+          <script>
+            window.opener.postMessage(
+              { type: 'google-login-success', token: '${accessToken}' },
+              '${process.env.CLIENT_URL}'
+            );
+            window.close();
+          </script>
+        </body>
+      </html>
+    `);
   } catch (error) {
     console.error(error);
     next(error);
