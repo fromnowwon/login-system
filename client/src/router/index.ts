@@ -4,7 +4,6 @@ import LoginPage from "@/views/LoginPage.vue";
 import ProfilePage from "@/views/ProfilePage.vue";
 import EditProfilePage from "@/views/EditProfilePage.vue";
 import RegisterPage from "@/views/RegisterPage.vue";
-import GoogleLoginSuccessPage from "@/views/GoogleLoginSuccessPage.vue";
 import AdminPage from "@/views/AdminPage.vue";
 
 const routes = [
@@ -20,12 +19,6 @@ const routes = [
     path: "/edit-profile",
     component: EditProfilePage,
     meta: { requiresAuth: true },
-  },
-  {
-    path: "/login-success",
-    alias: ["/login-success/"],
-    name: "GoogleLoginSuccess",
-    component: GoogleLoginSuccessPage,
   },
   {
     path: "/admin",
