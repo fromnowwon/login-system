@@ -95,7 +95,6 @@ const goLogin = () => {
 const logout = () => {
   authStore.logout();
   closeMenu();
-  router.push("/login");
 };
 
 const goAdmin = () => {

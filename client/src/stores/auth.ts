@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import router from "@/router";
 
 interface User {
   id: number;
@@ -97,8 +98,7 @@ export const useAuthStore = defineStore("auth", {
       this.token = null;
       localStorage.removeItem("accessToken");
 
-      // 상태 완전히 초기화한 뒤 로그인 페이지로 강제 이동
-      window.location.href = "/login";
+      await router.push("/login");
     },
   },
 });
