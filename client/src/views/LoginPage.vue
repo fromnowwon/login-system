@@ -26,7 +26,7 @@ function handleMessage(event: MessageEvent) {
   if (event.data.type === "google-login-success") {
     const token = event.data.token;
     authStore.token = token;
-    localStorage.setItem("token", token);
+    localStorage.setItem("accessToken", token);
     authStore.verifyCertificate();
 
     // 로그인 성공 후 리다이렉트

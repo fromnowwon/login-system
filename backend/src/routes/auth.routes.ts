@@ -3,6 +3,7 @@ import express from "express";
 import {
   googleOAuthCallback,
   loginUser,
+  refreshTokenHandler,
   registerUser,
 } from "../controllers/auth.controller";
 import { authMiddleware } from "../middlewares/authMiddleware";
@@ -14,6 +15,9 @@ router.post("/register", registerUser);
 
 // 로그인
 router.post("/login", loginUser);
+
+// Access Token 재발급 요청
+router.post("/refresh", refreshTokenHandler);
 
 // 인증된 사용자 정보 조회
 router.get("/certificate", authMiddleware, (req, res) => {

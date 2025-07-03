@@ -5,7 +5,11 @@ import { ResultSetHeader, RowDataPacket } from "mysql2";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import pool from "../db";
-import { generateToken } from "../utils/jwt";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+} from "../utils/jwt";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -88,21 +92,27 @@ export const loginUser: RequestHandler = async (
       return;
     }
 
-    // 토큰 생성
-    const token = generateToken({
+    const payload = {
       id: user.id,
       email: user.email,
       name: user.name,
+    };
+
+    // 토큰 생성
+    const accessToken = generateAccessToken(payload);
+    const refreshToken = generateRefreshToken(payload);
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // HTTPS 환경에서만 전달
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7일
     });
 
     res.status(200).json({
       message: "로그인 성공",
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
+      accessToken,
+      user: payload,
     });
   } catch (error) {
     console.error("로그인 오류", error);
@@ -110,6 +120,31 @@ export const loginUser: RequestHandler = async (
       .status(500)
       .json({ message: "서버 오류가 발생했습니다. 나중에 다시 시도해주세요." });
   }
+};
+
+// Access Token 재발급 요청
+export const refreshTokenHandler: RequestHandler = async (req, res) => {
+  const refreshToken = req.cookies.refreshToken; // 쿠키에서 읽음
+
+  if (!refreshToken) {
+    res.status(401).json({ message: "Refresh Token이 없습니다." });
+    return;
+  }
+
+  const decoded = verifyRefreshToken(refreshToken);
+
+  if (!decoded) {
+    res.status(403).json({ message: "유효하지 않은 Refresh Token입니다." });
+    return;
+  }
+
+  const newAccessToken = generateAccessToken({
+    id: decoded.id,
+    email: decoded.email,
+    name: decoded.name,
+  });
+
+  res.status(200).json({ accessToken: newAccessToken });
 };
 
 // 구글 OAuth 콜백 처리

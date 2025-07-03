@@ -11,12 +11,15 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
+
 import Navbar from "@/components/Navbar.vue";
 import BottomTabs from "@/components/BottomTabs.vue";
 
 const route = useRoute();
+const authStore = useAuthStore();
 
 const hiddenPaths = ["/login", "/register", "/auth/google/callback"];
 
@@ -26,5 +29,10 @@ const showNavbar = computed(() => {
 
 const showBottomTabs = computed(() => {
   return !hiddenPaths.includes(route.path);
+});
+
+// 앱 진입 시 인증 확인
+onMounted(() => {
+  authStore.verifyCertificate();
 });
 </script>

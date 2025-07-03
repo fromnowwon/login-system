@@ -63,6 +63,7 @@ async function onSubmit() {
         headers: {
           "content-type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({
           email: email.value,
           password: password.value,
@@ -77,10 +78,10 @@ async function onSubmit() {
     const data = await response.json();
 
     // 로그인 성공 시 토큰을 로컬 스토리지에 저장
-    localStorage.setItem("token", data.token);
+    localStorage.setItem("accessToken", data.accessToken);
 
     // authStore에 토큰과 사용자 정보를 저장
-    authStore.token = data.token;
+    authStore.token = data.accessToken;
     authStore.user = data.user ?? null;
 
     router.push("/");

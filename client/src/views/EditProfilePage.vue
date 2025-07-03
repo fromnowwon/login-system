@@ -149,7 +149,7 @@ const updateProfile = async () => {
     // 새 토큰이 있으면 교체 (비밀번호 변경 시 새 JWT 발급됨)
     if (data.token) {
       authStore.token = data.token;
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("accessToken", data.token);
       alert("프로필이 수정되었습니다. 다시 로그인 해주세요.");
       authStore.logout();
       router.push("/login");

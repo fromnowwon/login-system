@@ -15,7 +15,7 @@ onMounted(() => {
   if (token) {
     // JWT 저장 및 인증 상태 갱신
     authStore.token = token;
-    localStorage.setItem("token", token);
+    localStorage.setItem("accessToken", token);
     authStore.verifyCertificate();
 
     // 부모 창에 메시지 보내기
